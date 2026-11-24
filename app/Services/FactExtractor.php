@@ -31,8 +31,10 @@ class FactExtractor
 
     public function __construct(
         protected ?SafetyGuard $safetyGuard = null,
+        protected ?AiService $aiService = null,
     ) {
         $this->safetyGuard ??= new SafetyGuard();
+        $this->aiService ??= new AiService();
     }
 
     public function extractForSite(Site $site): int
@@ -161,10 +163,7 @@ class FactExtractor
      */
     protected function extractWithGemini(Source $source, string $rawText): array
     {
-        $apiKey = (string) config('services.gemini.api_key');
-        $model = (string) config('services.gemini.model', 'gemini-2.5-flash');
-
-        if ($apiKey === '') {
+        if (! $this->aiService->isAnyConfigured()) {
             return [];
         }
 
@@ -172,32 +171,7 @@ class FactExtractor
         $prompt = str_replace('{{DATA}}', $rawText, (string) $promptTemplate);
 
         try {
-            $endpoint = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
-
-            $response = Http::timeout(30)->post($endpoint, [
-                'contents' => [
-                    [
-                        'parts' => [
-                            ['text' => $prompt],
-                        ],
-                    ],
-                ],
-                'generationConfig' => [
-                    'responseMimeType' => 'application/json',
-                ],
-            ]);
-
-            if (! $response->successful()) {
-                Log::warning('FactExtractor Gemini HTTP error', [
-                    'source_id' => $source->id,
-                    'status' => $response->status(),
-                ]);
-
-                return [];
-            }
-
-            $jsonText = (string) $response->json('candidates.0.content.parts.0.text', '');
-            $decoded = json_decode($jsonText, true);
+            $decoded = $this->aiService->generateJson($prompt);
 
             if (! is_array($decoded) || ! isset($decoded['facts']) || ! is_array($decoded['facts'])) {
                 return [];
@@ -233,7 +207,7 @@ class FactExtractor
 
             return $validated;
         } catch (Throwable $e) {
-            Log::warning('FactExtractor Gemini exception', [
+            Log::warning('FactExtractor AI exception', [
                 'source_id' => $source->id,
                 'error' => $e->getMessage(),
             ]);

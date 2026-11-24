@@ -40,6 +40,26 @@ return [
         'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
     ],
 
+    'groq' => [
+        'api_key' => env('GROQ_API_KEY'),
+        'model' => env('GROQ_MODEL', 'llama-3.3-70b-versatile'),
+    ],
+
+    'mistral' => [
+        'api_key' => env('MISTRAL_API_KEY'),
+        'model' => env('MISTRAL_MODEL', 'mistral-small-latest'),
+    ],
+
+    'openrouter' => [
+        'api_key' => env('OPENROUTER_API_KEY'),
+        'model' => env('OPENROUTER_MODEL', 'google/gemini-2.5-flash'),
+    ],
+
+    'nvidia' => [
+        'api_key' => env('NVIDIA_API_KEY'),
+        'model' => env('NVIDIA_MODEL', 'meta/llama-3.3-70b-instruct'),
+    ],
+
     'search' => [
         'driver' => env('SEARCH_DRIVER', 'null'),
         'api_key' => env('SEARCH_API_KEY'),

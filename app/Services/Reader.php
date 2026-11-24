@@ -23,8 +23,10 @@ class Reader
 
     public function __construct(
         protected ?UrlGuard $urlGuard = null,
+        protected ?AiService $aiService = null,
     ) {
         $this->urlGuard ??= new UrlGuard();
+        $this->aiService ??= new AiService();
     }
 
     public function read(Source $source): Source
@@ -157,16 +159,8 @@ class Reader
 
     protected function transcribeWithGemini(Source $source, string $fullPath, string $mimeType): Source
     {
-        $apiKey = (string) config('services.gemini.api_key');
-        $model = (string) config('services.gemini.model', 'gemini-2.5-flash');
-
-        if ($apiKey === '') {
-            return $this->markFailed($source, 'AI transcription is not configured yet. Please paste the text or configure GEMINI_API_KEY.');
-        }
-
-        $bytes = @file_get_contents($fullPath);
-        if ($bytes === false || $bytes === '') {
-            return $this->markFailed($source, 'We could not read this file. Please upload another copy.');
+        if (! $this->aiService->isAnyConfigured()) {
+            return $this->markFailed($source, 'AI transcription is not configured yet. Please paste the text or configure an AI key.');
         }
 
         $promptPath = resource_path('prompts/transcribe_image.txt');
@@ -175,42 +169,15 @@ class Reader
             : 'Transcribe the visible text exactly. Do not add, summarize or guess anything. If unreadable, say UNREADABLE.';
 
         try {
-            $endpoint = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
+            $text = $this->aiService->transcribeImage($prompt, $fullPath, $mimeType);
 
-            $response = Http::timeout(30)->post($endpoint, [
-                'contents' => [
-                    [
-                        'parts' => [
-                            ['text' => $prompt],
-                            [
-                                'inline_data' => [
-                                    'mime_type' => $mimeType,
-                                    'data' => base64_encode($bytes),
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ]);
-
-            if (! $response->successful()) {
-                Log::warning('Gemini transcription HTTP error', [
-                    'source_id' => $source->id,
-                    'status' => $response->status(),
-                ]);
-
-                return $this->markFailed($source, 'We could not transcribe this file right now. Please try again.');
-            }
-
-            $text = trim((string) $response->json('candidates.0.content.parts.0.text', ''));
-
-            if ($text === '' || strtoupper($text) === 'UNREADABLE') {
+            if ($text === null || $text === '' || strtoupper($text) === 'UNREADABLE') {
                 return $this->markFailed($source, 'The text in this file was unreadable. Please upload a clearer copy.');
             }
 
             return $this->markRead($source, $text);
         } catch (Throwable $e) {
-            Log::warning('Gemini transcription exception', [
+            Log::warning('AI transcription exception', [
                 'source_id' => $source->id,
                 'error' => $e->getMessage(),
             ]);
