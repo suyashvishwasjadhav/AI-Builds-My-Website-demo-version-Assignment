@@ -7,10 +7,13 @@ use App\Enums\SiteStatus;
 use App\Enums\SourceStatus;
 use App\Enums\SourceType;
 use App\Http\Requests\StoreSiteRequest;
+use App\Jobs\GenerateSiteJob;
 use App\Jobs\ReadSourceJob;
 use App\Models\Site;
+use App\Services\Writer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
@@ -100,19 +103,27 @@ class SiteController extends Controller
         return redirect()->route('sites.show', $site);
     }
 
-    public function show(Site $site): View
+    public function show(Site $site, Writer $writer): View
     {
         Gate::authorize('view', $site);
 
-        $site->loadCount('sources');
+        $site->loadCount(['sources', 'sections']);
         $openQuestions = $site->questions()
             ->where('status', QuestionStatus::Open)
             ->latest()
             ->get();
 
+        $generationStatus = Cache::get(GenerateSiteJob::cacheKey($site->id), [
+            'stage' => null,
+            'state' => 'idle',
+            'error' => null,
+        ]);
+
         return view('dashboard.overview', [
             'site' => $site,
             'openQuestions' => $openQuestions,
+            'canGenerate' => $writer->canGenerate($site),
+            'generationStatus' => $generationStatus,
         ]);
     }
 

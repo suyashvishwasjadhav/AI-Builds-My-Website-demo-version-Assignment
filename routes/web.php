@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\FactController;
+use App\Http\Controllers\GenerationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\SiteController;
@@ -42,6 +43,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/sites/{site}/questions/{question}/skip', [QuestionController::class, 'skip'])
         ->middleware('can:update,site')
         ->name('sites.questions.skip');
+
+    Route::post('/sites/{site}/generate', [GenerationController::class, 'generate'])
+        ->middleware(['can:update,site', 'throttle:10,1'])
+        ->name('sites.generate');
+
+    Route::post('/sites/{site}/generate-fallback', [GenerationController::class, 'fallback'])
+        ->middleware('can:update,site')
+        ->name('sites.generate.fallback');
+
+    Route::get('/sites/{site}/generation-status', [GenerationController::class, 'status'])
+        ->middleware('can:view,site')
+        ->name('sites.generate.status');
 
     Route::get('/sites/{site}/{tab}', [SiteController::class, 'tab'])
         ->whereIn('tab', ['sections', 'media', 'enquiries', 'settings'])
