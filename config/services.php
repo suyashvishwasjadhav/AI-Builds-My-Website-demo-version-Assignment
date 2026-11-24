@@ -40,4 +40,10 @@ return [
         'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
     ],
 
+    'search' => [
+        'driver' => env('SEARCH_DRIVER', 'null'),
+        'api_key' => env('SEARCH_API_KEY'),
+        'engine_id' => env('SEARCH_ENGINE_ID'),
+    ],
+
 ];
