@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\FactController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\SourceController;
 use Illuminate\Support\Facades\Route;
@@ -33,6 +34,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/sites/{site}/facts', [FactController::class, 'index'])
         ->middleware('can:view,site')
         ->name('sites.facts');
+
+    Route::post('/sites/{site}/questions/{question}/answer', [QuestionController::class, 'answer'])
+        ->middleware('can:update,site')
+        ->name('sites.questions.answer');
+
+    Route::post('/sites/{site}/questions/{question}/skip', [QuestionController::class, 'skip'])
+        ->middleware('can:update,site')
+        ->name('sites.questions.skip');
 
     Route::get('/sites/{site}/{tab}', [SiteController::class, 'tab'])
         ->whereIn('tab', ['sections', 'media', 'enquiries', 'settings'])
