@@ -48,7 +48,7 @@
                         ['key' => 'facts', 'label' => 'Facts', 'route' => route('sites.facts', $site)],
                         ['key' => 'sections', 'label' => 'Sections', 'route' => route('sites.sections', $site)],
                         ['key' => 'media', 'label' => 'Media', 'route' => route('sites.tab', [$site, 'media'])],
-                        ['key' => 'enquiries', 'label' => 'Enquiries', 'route' => route('sites.tab', [$site, 'enquiries'])],
+                        ['key' => 'enquiries', 'label' => 'Enquiries', 'route' => route('sites.enquiries', $site)],
                         ['key' => 'settings', 'label' => 'Settings', 'route' => route('sites.tab', [$site, 'settings'])],
                     ];
                 @endphp

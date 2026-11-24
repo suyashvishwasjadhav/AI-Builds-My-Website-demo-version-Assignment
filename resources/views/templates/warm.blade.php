@@ -99,6 +99,7 @@
                         <div><dt class="font-medium text-stone-500">Opening Hours</dt><dd class="text-stone-900">{{ $facts['hours'][0] }}</dd></div>
                     @endif
                 </dl>
+                @include('templates.partials.enquiry-form')
             </section>
         @endif
     </main>

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\EnquiryController;
 use App\Http\Controllers\FactController;
 use App\Http\Controllers\GenerationController;
 use App\Http\Controllers\PreviewController;
@@ -17,6 +18,9 @@ Route::get('/', function () {
 });
 
 Route::get('/s/{slug}', [PublicSiteController::class, 'show'])->name('public.site');
+Route::post('/s/{slug}/enquiries', [EnquiryController::class, 'store'])
+    ->middleware('throttle:10,1')
+    ->name('public.enquiries.store');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [SiteController::class, 'index'])->name('dashboard');
@@ -102,8 +106,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('can:update,site')
         ->name('sites.slug.update');
 
+    Route::get('/sites/{site}/enquiries', [EnquiryController::class, 'index'])
+        ->middleware('can:view,site')
+        ->name('sites.enquiries');
+
+    Route::post('/sites/{site}/enquiries/{enquiry}/read', [EnquiryController::class, 'markRead'])
+        ->middleware('can:update,site')
+        ->name('sites.enquiries.read');
+
     Route::get('/sites/{site}/{tab}', [SiteController::class, 'tab'])
-        ->whereIn('tab', ['media', 'enquiries', 'settings'])
+        ->whereIn('tab', ['media', 'settings'])
         ->middleware('can:view,site')
         ->name('sites.tab');
 });
