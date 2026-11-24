@@ -2,18 +2,31 @@
 
 namespace App\Services;
 
+use App\Enums\QuestionStatus;
+use App\Enums\QuestionType;
 use App\Enums\SourceStatus;
 use App\Enums\SourceType;
+use App\Models\Question;
 use App\Models\Source;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Smalot\PdfParser\Parser as PdfParser;
+use Symfony\Component\DomCrawler\Crawler;
 use Throwable;
 
 class Reader
 {
+    private const MAX_RESPONSE_BYTES = 2_097_152; // 2 MB
+
+    public function __construct(
+        protected ?UrlGuard $urlGuard = null,
+    ) {
+        $this->urlGuard ??= new UrlGuard();
+    }
+
     public function read(Source $source): Source
     {
         if ($source->type === SourceType::User) {
@@ -29,7 +42,11 @@ class Reader
             return $this->readFile($source);
         }
 
-        return $this->markFailed($source, 'This source type is not supported by the file reader yet.');
+        if ($source->type === SourceType::Link) {
+            return $this->readLink($source);
+        }
+
+        return $this->markFailed($source, 'This source type is not supported by the reader.');
     }
 
     protected function readFile(Source $source): Source
@@ -200,6 +217,183 @@ class Reader
 
             return $this->markFailed($source, 'We could not transcribe this file right now. Please try again.');
         }
+    }
+
+    protected function readLink(Source $source): Source
+    {
+        $url = trim((string) $source->path_or_url);
+
+        if ($error = $this->urlGuard->validate($url)) {
+            return $this->markFailed($source, $error);
+        }
+
+        try {
+            $response = Http::timeout(10)
+                ->withUserAgent('Mozilla/5.0 (compatible; WebsiteBuilderBot/1.0)')
+                ->withOptions(['max_redirects' => 5])
+                ->get($url);
+        } catch (ConnectionException $e) {
+            Log::warning('Link fetch timed out or failed to connect', [
+                'source_id' => $source->id,
+                'url' => $url,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->markFailed($source, 'This link timed out or could not be reached. Please try again or paste the details.');
+        } catch (Throwable $e) {
+            Log::warning('Link fetch failed', [
+                'source_id' => $source->id,
+                'url' => $url,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $this->markFailed($source, 'We could not fetch this link right now. Please try again.');
+        }
+
+        $status = $response->status();
+
+        if (in_array($status, [401, 403, 429], true)) {
+            return $this->markBlocked($source, $url);
+        }
+
+        if (! $response->successful()) {
+            return $this->markFailed($source, "We could not read this link (HTTP {$status}). Please check the URL or paste the details.");
+        }
+
+        $body = $response->body();
+        if (strlen($body) > self::MAX_RESPONSE_BYTES) {
+            $body = substr($body, 0, self::MAX_RESPONSE_BYTES);
+        }
+
+        $parsed = $this->parseHtml($body);
+        $visibleText = $parsed['text'];
+
+        if ($this->looksLikeLoginWallOrBlocked($url, $parsed['title'], $visibleText)) {
+            return $this->markBlocked($source, $url);
+        }
+
+        if ($visibleText === '' && $parsed['title'] === '' && $parsed['description'] === '') {
+            return $this->markBlocked($source, $url);
+        }
+
+        $parts = [];
+        if ($parsed['title'] !== '') {
+            $parts[] = "Title: {$parsed['title']}";
+        }
+        if ($parsed['description'] !== '') {
+            $parts[] = "Description: {$parsed['description']}";
+        }
+        if ($visibleText !== '') {
+            $parts[] = "Page text:\n{$visibleText}";
+        }
+
+        return $this->markRead($source, implode("\n\n", $parts));
+    }
+
+    /**
+     * @return array{title: string, description: string, text: string}
+     */
+    protected function parseHtml(string $html): array
+    {
+        $crawler = new Crawler($html);
+
+        $title = '';
+        $titleNode = $crawler->filter('title');
+        if ($titleNode->count() > 0) {
+            $title = $this->normalizeWhitespace($titleNode->first()->text(''));
+        }
+
+        $description = '';
+        $metaNode = $crawler->filter('meta[name="description"]');
+        if ($metaNode->count() > 0) {
+            $description = $this->normalizeWhitespace((string) $metaNode->first()->attr('content'));
+        }
+
+        $crawler->filter('script, style, noscript, svg')->each(function (Crawler $node): void {
+            foreach ($node as $domNode) {
+                $domNode->parentNode?->removeChild($domNode);
+            }
+        });
+
+        $bodyNode = $crawler->filter('body');
+        $rawBody = $bodyNode->count() > 0
+            ? $bodyNode->first()->text('')
+            : $crawler->text('');
+
+        $text = $this->normalizeWhitespace($rawBody);
+
+        return [
+            'title' => $title,
+            'description' => $description,
+            'text' => $text,
+        ];
+    }
+
+    protected function looksLikeLoginWallOrBlocked(string $url, string $title, string $text): bool
+    {
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+        $combined = strtolower(trim($title.' '.$text));
+        $length = strlen($text);
+
+        $isSocialHost = str_contains($host, 'facebook.com')
+            || str_contains($host, 'fb.com')
+            || str_contains($host, 'instagram.com')
+            || str_contains($host, 'linkedin.com');
+
+        $loginPhrases = ['log in', 'login', 'sign in', 'create new account', 'you must log in', 'enable javascript'];
+
+        if ($isSocialHost) {
+            if ($length < 120) {
+                return true;
+            }
+
+            foreach ($loginPhrases as $phrase) {
+                if (str_contains($combined, $phrase) && $length < 500) {
+                    return true;
+                }
+            }
+        }
+
+        if ($length < 80) {
+            foreach ($loginPhrases as $phrase) {
+                if (str_contains($combined, $phrase)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    protected function markBlocked(Source $source, string $url): Source
+    {
+        $message = "We couldn't read this link. Please paste the details or upload a screenshot.";
+
+        $source->update([
+            'status' => SourceStatus::Blocked,
+            'error_message' => $message,
+        ]);
+
+        $prompt = "We couldn't read this link ({$url}). Please paste the details or upload a screenshot.";
+
+        Question::firstOrCreate(
+            [
+                'site_id' => $source->site_id,
+                'type' => QuestionType::MissingInfo,
+                'prompt' => $prompt,
+                'status' => QuestionStatus::Open,
+            ],
+            [
+                'options' => [],
+            ]
+        );
+
+        return $source->fresh();
+    }
+
+    private function normalizeWhitespace(string $text): string
+    {
+        return trim((string) preg_replace('/\s+/u', ' ', $text));
     }
 
     protected function markRead(Source $source, string $rawText): Source

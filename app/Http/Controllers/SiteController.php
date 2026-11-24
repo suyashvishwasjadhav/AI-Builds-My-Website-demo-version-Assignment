@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\QuestionStatus;
 use App\Enums\SiteStatus;
 use App\Enums\SourceStatus;
 use App\Enums\SourceType;
@@ -49,21 +50,25 @@ class SiteController extends Controller
             ]);
 
             if (! empty($validated['google_business_url'])) {
-                $site->sources()->create([
+                $source = $site->sources()->create([
                     'type' => SourceType::Link,
                     'label' => 'Google Business',
                     'path_or_url' => $validated['google_business_url'],
                     'status' => SourceStatus::Pending,
                 ]);
+
+                ReadSourceJob::dispatch($source);
             }
 
             foreach ($validated['social_links'] ?? [] as $link) {
-                $site->sources()->create([
+                $source = $site->sources()->create([
                     'type' => SourceType::Link,
                     'label' => $this->inferLinkLabel($link),
                     'path_or_url' => $link,
                     'status' => SourceStatus::Pending,
                 ]);
+
+                ReadSourceJob::dispatch($source);
             }
 
             foreach ($request->file('files', []) as $file) {
@@ -100,9 +105,14 @@ class SiteController extends Controller
         Gate::authorize('view', $site);
 
         $site->loadCount('sources');
+        $openQuestions = $site->questions()
+            ->where('status', QuestionStatus::Open)
+            ->latest()
+            ->get();
 
         return view('dashboard.overview', [
             'site' => $site,
+            'openQuestions' => $openQuestions,
         ]);
     }
 
