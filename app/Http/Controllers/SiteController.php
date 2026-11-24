@@ -6,6 +6,7 @@ use App\Enums\SiteStatus;
 use App\Enums\SourceStatus;
 use App\Enums\SourceType;
 use App\Http\Requests\StoreSiteRequest;
+use App\Jobs\ReadSourceJob;
 use App\Models\Site;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -68,12 +69,14 @@ class SiteController extends Controller
             foreach ($request->file('files', []) as $file) {
                 $storedPath = $file->store("uploads/{$site->id}", 'local');
 
-                $site->sources()->create([
+                $source = $site->sources()->create([
                     'type' => SourceType::File,
                     'label' => $file->getClientOriginalName(),
                     'path_or_url' => $storedPath,
                     'status' => SourceStatus::Pending,
                 ]);
+
+                ReadSourceJob::dispatch($source);
             }
 
             if (! empty($validated['notes'])) {

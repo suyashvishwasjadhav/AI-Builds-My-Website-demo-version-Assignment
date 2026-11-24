@@ -8,6 +8,7 @@ use App\Models\Site;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -17,6 +18,7 @@ class SiteIntakeTest extends TestCase
 
     public function test_intake_creates_site_pending_sources_and_stores_files_with_random_names(): void
     {
+        Queue::fake();
         Storage::fake('local');
 
         $user = User::factory()->create();

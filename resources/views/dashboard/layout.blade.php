@@ -44,7 +44,7 @@
                 @php
                     $navItems = [
                         ['key' => 'overview', 'label' => 'Overview', 'route' => route('sites.show', $site)],
-                        ['key' => 'sources', 'label' => 'Sources', 'route' => route('sites.tab', [$site, 'sources'])],
+                        ['key' => 'sources', 'label' => 'Sources', 'route' => route('sites.sources', $site)],
                         ['key' => 'facts', 'label' => 'Facts', 'route' => route('sites.tab', [$site, 'facts'])],
                         ['key' => 'sections', 'label' => 'Sections', 'route' => route('sites.tab', [$site, 'sections'])],
                         ['key' => 'media', 'label' => 'Media', 'route' => route('sites.tab', [$site, 'media'])],

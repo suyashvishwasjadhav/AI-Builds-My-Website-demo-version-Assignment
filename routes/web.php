@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SiteController;
+use App\Http\Controllers\SourceController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -20,8 +21,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('can:view,site')
         ->name('sites.show');
 
+    Route::get('/sites/{site}/sources', [SourceController::class, 'index'])
+        ->middleware('can:view,site')
+        ->name('sites.sources');
+
+    Route::post('/sites/{site}/sources/{source}/retry', [SourceController::class, 'retry'])
+        ->middleware(['can:update,site', 'throttle:20,1'])
+        ->name('sites.sources.retry');
+
     Route::get('/sites/{site}/{tab}', [SiteController::class, 'tab'])
-        ->whereIn('tab', ['sources', 'facts', 'sections', 'media', 'enquiries', 'settings'])
+        ->whereIn('tab', ['facts', 'sections', 'media', 'enquiries', 'settings'])
         ->middleware('can:view,site')
         ->name('sites.tab');
 });

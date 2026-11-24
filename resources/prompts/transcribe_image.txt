@@ -1,0 +1,1 @@
+Transcribe the visible text exactly. Do not add, summarize or guess anything. If unreadable, say UNREADABLE.
