@@ -12,7 +12,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [SiteController::class, 'index'])->name('dashboard');
     Route::get('/sites', [SiteController::class, 'index'])->name('sites.index');
     Route::get('/sites/create', [SiteController::class, 'create'])->name('sites.create');
-    Route::post('/sites', [SiteController::class, 'store'])->name('sites.store');
+    Route::post('/sites', [SiteController::class, 'store'])
+        ->middleware('throttle:20,1')
+        ->name('sites.store');
 
     Route::get('/sites/{site}', [SiteController::class, 'show'])
         ->middleware('can:view,site')

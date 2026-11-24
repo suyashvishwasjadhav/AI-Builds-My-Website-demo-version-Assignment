@@ -19,7 +19,12 @@
 
         <!-- Sources -->
         <section class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-            <h3 class="text-base font-semibold text-slate-900">Sources</h3>
+            <div class="flex items-center justify-between">
+                <h3 class="text-base font-semibold text-slate-900">Sources</h3>
+                <span class="text-xs font-medium bg-slate-100 text-slate-700 px-2.5 py-0.5 rounded-full">
+                    {{ $site->sources_count ?? $site->sources()->count() }} added
+                </span>
+            </div>
             <p class="mt-2 text-sm text-slate-500">
                 Links, uploaded documents, and search results used to gather verified facts for your website.
             </p>
