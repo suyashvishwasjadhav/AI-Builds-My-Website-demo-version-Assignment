@@ -17,6 +17,7 @@ class Fact extends Model
         'source_id',
         'key',
         'value',
+        'snippet',
         'status',
         'confidence',
     ];

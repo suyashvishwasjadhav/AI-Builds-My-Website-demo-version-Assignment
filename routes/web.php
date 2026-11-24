@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\FactController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\SourceController;
@@ -29,8 +30,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(['can:update,site', 'throttle:20,1'])
         ->name('sites.sources.retry');
 
+    Route::get('/sites/{site}/facts', [FactController::class, 'index'])
+        ->middleware('can:view,site')
+        ->name('sites.facts');
+
     Route::get('/sites/{site}/{tab}', [SiteController::class, 'tab'])
-        ->whereIn('tab', ['facts', 'sections', 'media', 'enquiries', 'settings'])
+        ->whereIn('tab', ['sections', 'media', 'enquiries', 'settings'])
         ->middleware('can:view,site')
         ->name('sites.tab');
 });
