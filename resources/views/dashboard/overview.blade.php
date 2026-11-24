@@ -120,13 +120,9 @@
             </div>
         </section>
 
-        <!-- Publish -->
-        <section class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
-            <h3 class="text-base font-semibold text-slate-900">Publish</h3>
-            <p class="mt-2 text-sm text-slate-500">
-                Your site is currently <span class="font-medium capitalize">{{ $site->status->value }}</span>.
-                Public URL: <code class="text-xs bg-slate-100 px-1.5 py-0.5 rounded">/s/{{ $site->slug }}</code>
-            </p>
-        </section>
+        @include('dashboard.partials.publish-card', [
+            'site' => $site,
+            'publishBlockReason' => $publishBlockReason ?? null,
+        ])
     </div>
 @endsection

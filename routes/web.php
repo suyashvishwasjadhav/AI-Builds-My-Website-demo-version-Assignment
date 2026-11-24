@@ -4,6 +4,8 @@ use App\Http\Controllers\FactController;
 use App\Http\Controllers\GenerationController;
 use App\Http\Controllers\PreviewController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicSiteController;
+use App\Http\Controllers\PublishController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\SectionController;
 use App\Http\Controllers\SiteController;
@@ -13,6 +15,8 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/s/{slug}', [PublicSiteController::class, 'show'])->name('public.site');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [SiteController::class, 'index'])->name('dashboard');
@@ -85,6 +89,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/sites/{site}/sections/{section}/versions/{version}/restore', [SectionController::class, 'restore'])
         ->middleware('can:update,site')
         ->name('sites.sections.restore');
+
+    Route::post('/sites/{site}/publish', [PublishController::class, 'publish'])
+        ->middleware('can:update,site')
+        ->name('sites.publish');
+
+    Route::post('/sites/{site}/unpublish', [PublishController::class, 'unpublish'])
+        ->middleware('can:update,site')
+        ->name('sites.unpublish');
+
+    Route::patch('/sites/{site}/slug', [PublishController::class, 'updateSlug'])
+        ->middleware('can:update,site')
+        ->name('sites.slug.update');
 
     Route::get('/sites/{site}/{tab}', [SiteController::class, 'tab'])
         ->whereIn('tab', ['media', 'enquiries', 'settings'])

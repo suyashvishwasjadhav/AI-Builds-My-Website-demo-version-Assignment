@@ -10,6 +10,7 @@ use App\Http\Requests\StoreSiteRequest;
 use App\Jobs\GenerateSiteJob;
 use App\Jobs\ReadSourceJob;
 use App\Models\Site;
+use App\Services\Publisher;
 use App\Services\Writer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -103,7 +104,7 @@ class SiteController extends Controller
         return redirect()->route('sites.show', $site);
     }
 
-    public function show(Site $site, Writer $writer): View
+    public function show(Site $site, Writer $writer, Publisher $publisher): View
     {
         Gate::authorize('view', $site);
 
@@ -124,6 +125,7 @@ class SiteController extends Controller
             'openQuestions' => $openQuestions,
             'canGenerate' => $writer->canGenerate($site),
             'generationStatus' => $generationStatus,
+            'publishBlockReason' => $publisher->publishBlockReason($site),
         ]);
     }
 
