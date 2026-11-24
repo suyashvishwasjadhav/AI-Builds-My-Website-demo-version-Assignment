@@ -1,15 +1,28 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SiteController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', [SiteController::class, 'index'])->name('dashboard');
+    Route::get('/sites', [SiteController::class, 'index'])->name('sites.index');
+    Route::get('/sites/create', [SiteController::class, 'create'])->name('sites.create');
+    Route::post('/sites', [SiteController::class, 'store'])->name('sites.store');
+
+    Route::get('/sites/{site}', [SiteController::class, 'show'])
+        ->middleware('can:view,site')
+        ->name('sites.show');
+
+    Route::get('/sites/{site}/{tab}', [SiteController::class, 'tab'])
+        ->whereIn('tab', ['sources', 'facts', 'sections', 'media', 'enquiries', 'settings'])
+        ->middleware('can:view,site')
+        ->name('sites.tab');
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
