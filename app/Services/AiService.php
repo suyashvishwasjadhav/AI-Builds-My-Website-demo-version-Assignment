@@ -17,10 +17,10 @@ class AiService
      * @var list<string>
      */
     protected array $providerOrder = [
-        'gemini',
         'groq',
-        'mistral',
         'openrouter',
+        'gemini',
+        'mistral',
         'nvidia',
     ];
 
@@ -117,8 +117,8 @@ class AiService
 
         $base64 = base64_encode($bytes);
 
-        // Multimodal provider priority: Gemini -> OpenRouter
-        $visionProviders = ['gemini', 'openrouter'];
+        // Multimodal provider priority: OpenRouter -> Gemini
+        $visionProviders = ['openrouter', 'gemini'];
 
         foreach ($visionProviders as $provider) {
             $apiKey = $this->getApiKey($provider);
@@ -163,7 +163,7 @@ class AiService
 
     protected function callGemini(string $apiKey, string $prompt, int $timeoutSeconds): ?string
     {
-        $model = (string) config('services.gemini.model', 'gemini-2.5-flash');
+        $model = (string) config('services.gemini.model', 'gemini-3.8-flash');
         $endpoint = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
 
         $response = Http::timeout($timeoutSeconds)->post($endpoint, [
@@ -184,7 +184,7 @@ class AiService
 
     protected function callGroq(string $apiKey, string $prompt, int $timeoutSeconds): ?string
     {
-        $model = (string) config('services.groq.model', 'llama-3.3-70b-versatile');
+        $model = (string) config('services.groq.model', 'openai/gpt-oss-120b');
         $endpoint = 'https://api.groq.com/openai/v1/chat/completions';
 
         $response = Http::timeout($timeoutSeconds)
@@ -194,6 +194,7 @@ class AiService
                 'messages' => [
                     ['role' => 'user', 'content' => $prompt],
                 ],
+                'max_tokens' => 2500,
                 'response_format' => ['type' => 'json_object'],
             ]);
 
@@ -216,6 +217,7 @@ class AiService
                 'messages' => [
                     ['role' => 'user', 'content' => $prompt],
                 ],
+                'max_tokens' => 2500,
                 'response_format' => ['type' => 'json_object'],
             ]);
 
@@ -228,7 +230,7 @@ class AiService
 
     protected function callOpenRouter(string $apiKey, string $prompt, int $timeoutSeconds): ?string
     {
-        $model = (string) config('services.openrouter.model', 'google/gemini-2.5-flash');
+        $model = (string) config('services.openrouter.model', 'openai/gpt-4o-mini');
         $endpoint = 'https://openrouter.ai/api/v1/chat/completions';
 
         $response = Http::timeout($timeoutSeconds)
@@ -242,6 +244,7 @@ class AiService
                 'messages' => [
                     ['role' => 'user', 'content' => $prompt],
                 ],
+                'max_tokens' => 2500,
                 'response_format' => ['type' => 'json_object'],
             ]);
 
@@ -254,7 +257,7 @@ class AiService
 
     protected function callNvidia(string $apiKey, string $prompt, int $timeoutSeconds): ?string
     {
-        $model = (string) config('services.nvidia.model', 'meta/llama-3.3-70b-instruct');
+        $model = (string) config('services.nvidia.model', 'google/gemma-3-12b-it');
         $endpoint = 'https://integrate.api.nvidia.com/v1/chat/completions';
 
         $response = Http::timeout($timeoutSeconds)
@@ -265,6 +268,7 @@ class AiService
                     ['role' => 'system', 'content' => 'You are a helpful assistant. Output ONLY valid raw JSON with no extra commentary.'],
                     ['role' => 'user', 'content' => $prompt],
                 ],
+                'max_tokens' => 2500,
             ]);
 
         if (! $response->successful()) {
@@ -304,7 +308,7 @@ class AiService
 
     protected function callOpenRouterVision(string $apiKey, string $prompt, string $base64, string $mimeType, int $timeoutSeconds): ?string
     {
-        $model = (string) config('services.openrouter.model', 'google/gemini-2.5-flash');
+        $model = (string) config('services.openrouter.model', 'openai/gpt-4o-mini');
         $endpoint = 'https://openrouter.ai/api/v1/chat/completions';
 
         $dataUri = "data:{$mimeType};base64,{$base64}";
@@ -326,6 +330,7 @@ class AiService
                         ],
                     ],
                 ],
+                'max_tokens' => 2500,
             ]);
 
         if (! $response->successful()) {

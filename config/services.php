@@ -37,12 +37,12 @@ return [
 
     'gemini' => [
         'api_key' => env('GEMINI_API_KEY'),
-        'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
+        'model' => env('GEMINI_MODEL', 'gemini-3.8-flash'),
     ],
 
     'groq' => [
         'api_key' => env('GROQ_API_KEY'),
-        'model' => env('GROQ_MODEL', 'llama-3.3-70b-versatile'),
+        'model' => env('GROQ_MODEL', 'openai/gpt-oss-120b'),
     ],
 
     'mistral' => [
@@ -52,12 +52,12 @@ return [
 
     'openrouter' => [
         'api_key' => env('OPENROUTER_API_KEY'),
-        'model' => env('OPENROUTER_MODEL', 'google/gemini-2.5-flash'),
+        'model' => env('OPENROUTER_MODEL', 'openai/gpt-4o-mini'),
     ],
 
     'nvidia' => [
         'api_key' => env('NVIDIA_API_KEY'),
-        'model' => env('NVIDIA_MODEL', 'meta/llama-3.3-70b-instruct'),
+        'model' => env('NVIDIA_MODEL', 'google/gemma-3-12b-it'),
     ],
 
     'search' => [

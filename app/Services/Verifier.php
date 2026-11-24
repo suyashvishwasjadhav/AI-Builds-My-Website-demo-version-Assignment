@@ -283,6 +283,18 @@ class Verifier
             ->whereIn('status', [QuestionStatus::Open, QuestionStatus::Skipped, QuestionStatus::Answered])
             ->get();
 
+        // Auto-close missing info questions if facts have been extracted
+        foreach ($existingMissing->where('status', QuestionStatus::Open) as $q) {
+            $key = (string) ($q->options['key'] ?? '');
+            if ($key === 'address' && in_array('address', $keysPresent, true)) {
+                $q->update(['status' => QuestionStatus::Answered, 'answer' => 'Found in sources']);
+            } elseif ($key === 'phone' && (in_array('phone', $keysPresent, true) || in_array('email', $keysPresent, true))) {
+                $q->update(['status' => QuestionStatus::Answered, 'answer' => 'Found in sources']);
+            } elseif ($key !== '' && $key !== 'address' && $key !== 'phone' && in_array($key, $keysPresent, true)) {
+                $q->update(['status' => QuestionStatus::Answered, 'answer' => 'Found in sources']);
+            }
+        }
+
         foreach ($checks as $key => $prompt) {
             $alreadyExists = $existingMissing->contains(
                 fn (Question $q) => ($q->options['key'] ?? null) === $key
