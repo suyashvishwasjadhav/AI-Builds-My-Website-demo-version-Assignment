@@ -110,6 +110,13 @@
                     </button>
                     <span class="text-xs text-amber-700">Resolve open business/conflict questions first.</span>
                 @endif
+
+                <a
+                    href="{{ route('sites.preview', $site) }}"
+                    class="inline-flex items-center px-3.5 py-2 rounded-md text-xs font-semibold bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition"
+                >
+                    Preview &amp; theme
+                </a>
             </div>
         </section>
 

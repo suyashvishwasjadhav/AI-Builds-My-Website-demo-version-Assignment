@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\FactController;
 use App\Http\Controllers\GenerationController;
+use App\Http\Controllers\PreviewController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\SiteController;
@@ -55,6 +56,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/sites/{site}/generation-status', [GenerationController::class, 'status'])
         ->middleware('can:view,site')
         ->name('sites.generate.status');
+
+    Route::get('/sites/{site}/preview', [PreviewController::class, 'show'])
+        ->middleware('can:view,site')
+        ->name('sites.preview');
+
+    Route::patch('/sites/{site}/template', [PreviewController::class, 'updateTemplate'])
+        ->middleware('can:update,site')
+        ->name('sites.template.update');
 
     Route::get('/sites/{site}/{tab}', [SiteController::class, 'tab'])
         ->whereIn('tab', ['sections', 'media', 'enquiries', 'settings'])
