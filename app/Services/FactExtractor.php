@@ -29,6 +29,12 @@ class FactExtractor
         'other',
     ];
 
+    public function __construct(
+        protected ?SafetyGuard $safetyGuard = null,
+    ) {
+        $this->safetyGuard ??= new SafetyGuard();
+    }
+
     public function extractForSite(Site $site): int
     {
         $sources = $site->sources()
@@ -51,14 +57,19 @@ class FactExtractor
             return 0;
         }
 
-        $candidates = $this->isCleanPriceTable($rawText)
-            ? $this->parsePriceTable($rawText)
-            : $this->extractWithGemini($source, $rawText);
+        $sanitizedText = $this->safetyGuard->sanitize($source);
+        if (trim($sanitizedText) === '') {
+            return 0;
+        }
+
+        $candidates = $this->isCleanPriceTable($sanitizedText)
+            ? $this->parsePriceTable($sanitizedText)
+            : $this->extractWithGemini($source, $sanitizedText);
 
         $createdCount = 0;
 
         foreach ($candidates as $candidate) {
-            if (! $this->snippetExistsInSource($candidate['snippet'], $rawText)) {
+            if (! $this->snippetExistsInSource($candidate['snippet'], $sanitizedText)) {
                 continue;
             }
 

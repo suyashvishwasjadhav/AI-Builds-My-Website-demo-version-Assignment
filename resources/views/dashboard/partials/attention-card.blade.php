@@ -91,6 +91,14 @@
                                 Save
                             </button>
                         </form>
+                    @elseif ($question->type->value === 'flagged_content')
+                        <div class="space-y-1.5">
+                            @foreach ($question->options['snippets'] ?? [] as $snippet)
+                                <div class="text-xs text-red-800 bg-red-50 border border-red-200 rounded px-2.5 py-1.5 font-mono">
+                                    {{ $snippet }}
+                                </div>
+                            @endforeach
+                        </div>
                     @endif
 
                     <form method="POST" action="{{ route('sites.questions.skip', [$site, $question]) }}">
