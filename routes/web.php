@@ -5,6 +5,7 @@ use App\Http\Controllers\GenerationController;
 use App\Http\Controllers\PreviewController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuestionController;
+use App\Http\Controllers\SectionController;
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\SourceController;
 use Illuminate\Support\Facades\Route;
@@ -65,8 +66,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('can:update,site')
         ->name('sites.template.update');
 
+    Route::get('/sites/{site}/sections', [SectionController::class, 'index'])
+        ->middleware('can:view,site')
+        ->name('sites.sections');
+
+    Route::patch('/sites/{site}/sections/{section}', [SectionController::class, 'update'])
+        ->middleware('can:update,site')
+        ->name('sites.sections.update');
+
+    Route::post('/sites/{site}/sections/{section}/regenerate', [SectionController::class, 'regenerate'])
+        ->middleware(['can:update,site', 'throttle:10,1'])
+        ->name('sites.sections.regenerate');
+
+    Route::post('/sites/{site}/sections/{section}/toggle', [SectionController::class, 'toggle'])
+        ->middleware('can:update,site')
+        ->name('sites.sections.toggle');
+
+    Route::post('/sites/{site}/sections/{section}/versions/{version}/restore', [SectionController::class, 'restore'])
+        ->middleware('can:update,site')
+        ->name('sites.sections.restore');
+
     Route::get('/sites/{site}/{tab}', [SiteController::class, 'tab'])
-        ->whereIn('tab', ['sections', 'media', 'enquiries', 'settings'])
+        ->whereIn('tab', ['media', 'enquiries', 'settings'])
         ->middleware('can:view,site')
         ->name('sites.tab');
 });

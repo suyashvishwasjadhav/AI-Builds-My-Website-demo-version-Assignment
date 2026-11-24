@@ -46,7 +46,7 @@
                         ['key' => 'overview', 'label' => 'Overview', 'route' => route('sites.show', $site)],
                         ['key' => 'sources', 'label' => 'Sources', 'route' => route('sites.sources', $site)],
                         ['key' => 'facts', 'label' => 'Facts', 'route' => route('sites.facts', $site)],
-                        ['key' => 'sections', 'label' => 'Sections', 'route' => route('sites.tab', [$site, 'sections'])],
+                        ['key' => 'sections', 'label' => 'Sections', 'route' => route('sites.sections', $site)],
                         ['key' => 'media', 'label' => 'Media', 'route' => route('sites.tab', [$site, 'media'])],
                         ['key' => 'enquiries', 'label' => 'Enquiries', 'route' => route('sites.tab', [$site, 'enquiries'])],
                         ['key' => 'settings', 'label' => 'Settings', 'route' => route('sites.tab', [$site, 'settings'])],
