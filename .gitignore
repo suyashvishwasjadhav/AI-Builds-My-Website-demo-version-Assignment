@@ -1,6 +1,7 @@
 *.log
 *.md
 !README.md
+!DECISIONS.md
 .DS_Store
 .env
 backend/.env
