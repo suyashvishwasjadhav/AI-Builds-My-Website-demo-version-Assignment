@@ -20,8 +20,8 @@ php artisan view:clear
 php artisan migrate --force
 php artisan db:seed --force || true
 
-# Start background queue worker
-php artisan queue:work --tries=1 --sleep=3 --max-time=3600 &
+# Start background queue worker (auto-restart if it ever exits)
+(while true; do php artisan queue:work --tries=1 --sleep=3; sleep 1; done) &
 
 # Start HTTP server
 exec php artisan serve --host=0.0.0.0 --port="${PORT:-8000}"
