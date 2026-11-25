@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Build React intake frontend -> outputs to /app/backend/public/landing
 COPY frontend/package*.json ./frontend/
-RUN cd frontend && npm ci
+RUN cd frontend && npm install
 COPY frontend ./frontend
 RUN mkdir -p backend/public && cd frontend && npm run build
 
