@@ -7,7 +7,6 @@ const DEFAULT_BRIDGE = {
   user: null,
   routes: {
     login: '/login',
-    register: '/register',
     dashboard: '/dashboard',
     createSite: '/sites/create',
     apiLandingData: '/api/landing-data',
@@ -100,21 +99,13 @@ export default function App() {
                 <ArrowRight className="h-3.5 w-3.5" />
               </a>
             ) : (
-              <>
-                <a
-                  href={bridge.routes.login}
-                  className="rounded-lg px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 transition"
-                >
-                  Log in
-                </a>
-                <a
-                  href={bridge.routes.register}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-slate-800 transition"
-                >
-                  <span>Get started</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </a>
-              </>
+              <a
+                href={bridge.routes.login}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-slate-800 transition"
+              >
+                <span>Log in</span>
+                <ArrowRight className="h-3.5 w-3.5" />
+              </a>
             )}
           </div>
         </div>
@@ -196,7 +187,7 @@ export default function App() {
           </form>
 
           <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-4 text-xs text-slate-500">
-            <span>Demo: demo@example.com / password</span>
+            <span>Fact-verified AI website builder</span>
             <a href={bridge.routes.dashboard} className="font-medium text-slate-900 hover:underline">
               Open Dashboard &rarr;
             </a>

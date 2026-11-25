@@ -73,7 +73,6 @@ class LandingController extends Controller
             'csrfToken' => csrf_token(),
             'routes' => [
                 'login' => route('login'),
-                'register' => route('register'),
                 'dashboard' => route('dashboard'),
                 'createSite' => route('sites.create'),
                 'apiLandingData' => route('api.landing.data'),
