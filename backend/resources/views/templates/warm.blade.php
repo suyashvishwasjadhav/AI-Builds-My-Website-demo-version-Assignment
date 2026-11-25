@@ -65,7 +65,7 @@
 
     @if (! empty($hero['headline']))
         @php
-            $bgImageUrl = $heroPhoto ? asset('storage/'.$heroPhoto->path) : ($demoHeroImage ?? null);
+            $bgImageUrl = $heroPhoto ? asset('storage/'.$heroPhoto->path) : ($demoHeroImage ?? $defaultHeroImage ?? null);
         @endphp
         <header
             class="relative overflow-hidden border-b border-amber-200 {{ $bgImageUrl ? 'bg-stone-900 text-white' : 'bg-amber-100/70 text-stone-900' }}"

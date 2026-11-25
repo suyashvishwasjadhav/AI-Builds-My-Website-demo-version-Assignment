@@ -52,6 +52,8 @@ class SitePresenter
             ->where('is_placeholder', false)
             ->get();
 
+        $defaultHeroImage = $this->resolveCuratedHeroImage($site, $factsByKey);
+
         $hero = $sections->get('hero');
         $heroContent = $hero?->content ?? [];
 
@@ -148,6 +150,7 @@ class SitePresenter
             'sections' => $sections,
             'facts' => $factsByKey,
             'photos' => $photos,
+            'defaultHeroImage' => $defaultHeroImage,
             'showPreviewPlaceholder' => $isPreview && $photos->isEmpty(),
             'seoTitle' => $seoTitle,
             'seoDescription' => $seoDescription,
@@ -197,5 +200,37 @@ class SitePresenter
             : "Hi {$businessName}, I saw your website and would like to enquire" . ($primaryService ? " about {$primaryService}" : '') . '.';
 
         return "https://wa.me/{$digits}?text=" . rawurlencode($greeting);
+    }
+
+    /**
+     * Curated, royalty-free high-res stock photo matching business category
+     *
+     * @param array<string, array<int, string>> $factsByKey
+     */
+    private function resolveCuratedHeroImage(Site $site, array $factsByKey): string
+    {
+        $haystack = strtolower(implode(' ', [
+            $site->business_name,
+            implode(' ', $factsByKey['service'] ?? []),
+            implode(' ', $factsByKey['product'] ?? []),
+            implode(' ', $factsByKey['category'] ?? []),
+        ]));
+
+        return match (true) {
+            str_contains($haystack, 'coffee') || str_contains($haystack, 'cafe') || str_contains($haystack, 'roaster') =>
+                'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1600&q=80',
+            str_contains($haystack, 'bakery') || str_contains($haystack, 'bread') || str_contains($haystack, 'cake') =>
+                'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=1600&q=80',
+            str_contains($haystack, 'dental') || str_contains($haystack, 'dentist') || str_contains($haystack, 'clinic') || str_contains($haystack, 'doctor') =>
+                'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1600&q=80',
+            str_contains($haystack, 'gym') || str_contains($haystack, 'fitness') || str_contains($haystack, 'crossfit') =>
+                'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1600&q=80',
+            str_contains($haystack, 'car') || str_contains($haystack, 'auto') || str_contains($haystack, 'garage') || str_contains($haystack, 'repair') =>
+                'https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&w=1600&q=80',
+            str_contains($haystack, 'restaurant') || str_contains($haystack, 'food') || str_contains($haystack, 'dining') =>
+                'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1600&q=80',
+            default =>
+                'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1600&q=80', // modern studio/workspace
+        };
     }
 }

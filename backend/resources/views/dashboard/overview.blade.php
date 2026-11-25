@@ -38,6 +38,71 @@
         </div>
     @endif
 
+    <!-- Interactive Tutorial / Step Indicator -->
+    <div class="mb-6 rounded-2xl bg-gradient-to-r from-indigo-900 to-slate-900 p-5 text-white shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-indigo-800/80 pb-3.5">
+            <div class="flex items-center gap-2">
+                <span class="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500/30 text-xs font-bold text-indigo-300">★</span>
+                <span class="text-xs font-bold uppercase tracking-wider text-indigo-200">Website Creation Guide</span>
+            </div>
+            @if ($site->status->value === 'published')
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-300">
+                    <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Live on Web
+                </span>
+            @else
+                <span class="text-xs text-slate-300">3 simple steps to live site</span>
+            @endif
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <!-- Step 1 -->
+            <div class="rounded-xl p-3 border {{ $openQuestions->isNotEmpty() ? 'border-amber-400 bg-amber-500/20 ring-2 ring-amber-400/50' : 'border-indigo-800/60 bg-indigo-950/40 text-slate-300' }}">
+                <div class="flex items-center gap-2 font-bold {{ $openQuestions->isNotEmpty() ? 'text-amber-200' : 'text-slate-200' }}">
+                    <span class="flex h-5 w-5 items-center justify-center rounded-full text-[10px] {{ $openQuestions->isNotEmpty() ? 'bg-amber-400 text-slate-950 animate-bounce' : 'bg-emerald-500 text-white' }}">
+                        {{ $openQuestions->isNotEmpty() ? '1' : '✓' }}
+                    </span>
+                    <span>1. Confirm Details</span>
+                </div>
+                <p class="mt-1 text-[11px] leading-relaxed {{ $openQuestions->isNotEmpty() ? 'text-amber-100' : 'text-slate-400' }}">
+                    {{ $openQuestions->isNotEmpty() ? 'Answer or skip open questions in Attention Card →' : 'All facts verified cleanly!' }}
+                </p>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="rounded-xl p-3 border {{ $openQuestions->isEmpty() && ($site->sections_count ?? $site->sections()->count()) === 0 ? 'border-indigo-400 bg-indigo-500/20 ring-2 ring-indigo-400/50' : 'border-indigo-800/60 bg-indigo-950/40 text-slate-300' }}">
+                <div class="flex items-center gap-2 font-bold {{ $openQuestions->isEmpty() && ($site->sections_count ?? $site->sections()->count()) === 0 ? 'text-indigo-200' : 'text-slate-200' }}">
+                    <span class="flex h-5 w-5 items-center justify-center rounded-full text-[10px] {{ ($site->sections_count ?? $site->sections()->count()) > 0 ? 'bg-emerald-500 text-white' : ($openQuestions->isEmpty() ? 'bg-indigo-400 text-slate-950 animate-pulse' : 'bg-slate-700 text-slate-300') }}">
+                        {{ ($site->sections_count ?? $site->sections()->count()) > 0 ? '✓' : '2' }}
+                    </span>
+                    <span>2. Generate with AI</span>
+                </div>
+                <p class="mt-1 text-[11px] leading-relaxed {{ $openQuestions->isEmpty() && ($site->sections_count ?? $site->sections()->count()) === 0 ? 'text-indigo-100' : 'text-slate-400' }}">
+                    Click "Generate website" below to build all sections.
+                </p>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="rounded-xl p-3 border {{ $site->status->value === 'published' ? 'border-emerald-400 bg-emerald-500/20' : 'border-indigo-800/60 bg-indigo-950/40 text-slate-300' }}">
+                <div class="flex items-center gap-2 font-bold {{ $site->status->value === 'published' ? 'text-emerald-200' : 'text-slate-200' }}">
+                    <span class="flex h-5 w-5 items-center justify-center rounded-full text-[10px] {{ $site->status->value === 'published' ? 'bg-emerald-400 text-slate-950' : 'bg-slate-700 text-slate-300' }}">
+                        {{ $site->status->value === 'published' ? '✓' : '3' }}
+                    </span>
+                    <span>3. Auto-Published</span>
+                </div>
+                <p class="mt-1 text-[11px] leading-relaxed text-slate-300">
+                    @if ($site->status->value === 'published')
+                        <a href="{{ route('public.site', $site->slug) }}" target="_blank" class="underline font-semibold text-emerald-300 hover:text-emerald-200">
+                            Open live website &nearr;
+                        </a>
+                    @else
+                        Website automatically publishes when generation completes.
+                    @endif
+                </p>
+            </div>
+        </div>
+    </div>
+
     <!-- KPI Telemetry Strip -->
     <div class="mb-6 grid grid-cols-2 lg:grid-cols-4 gap-4">
         <a href="{{ route('sites.sources', $site) }}" class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm hover:border-indigo-300 transition">
@@ -144,9 +209,12 @@
                         @csrf
                         <button
                             type="submit"
-                            class="inline-flex items-center px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition"
+                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-700 transition shadow-md ring-2 ring-indigo-400 ring-offset-2 animate-pulse cursor-pointer"
                         >
-                            Generate website
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            <span>Generate website &amp; Auto-Publish</span>
                         </button>
                     </form>
                 @else

@@ -65,7 +65,7 @@
 
     @if (! empty($hero['headline']))
         @php
-            $bgImageUrl = $heroPhoto ? asset('storage/'.$heroPhoto->path) : ($demoHeroImage ?? null);
+            $bgImageUrl = $heroPhoto ? asset('storage/'.$heroPhoto->path) : ($demoHeroImage ?? $defaultHeroImage ?? null);
         @endphp
         <header
             class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-950 to-indigo-950 border-b border-slate-800"

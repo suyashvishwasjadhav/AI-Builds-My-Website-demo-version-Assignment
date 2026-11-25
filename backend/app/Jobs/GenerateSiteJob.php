@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Enums\SourceStatus;
 use App\Models\Site;
 use App\Services\FactExtractor;
+use App\Services\Publisher;
 use App\Services\Reader;
 use App\Services\Verifier;
 use App\Services\Writer;
@@ -28,7 +29,7 @@ class GenerateSiteJob implements ShouldQueue
         return "site_generation_status_{$siteId}";
     }
 
-    public function handle(Reader $reader, FactExtractor $extractor, Verifier $verifier, Writer $writer): void
+    public function handle(Reader $reader, FactExtractor $extractor, Verifier $verifier, Writer $writer, Publisher $publisher): void
     {
         $site = $this->site->fresh();
         $key = self::cacheKey($site->id);
@@ -57,7 +58,14 @@ class GenerateSiteJob implements ShouldQueue
             $ok = $writer->generate($site);
 
             if ($ok) {
-                Cache::put($key, ['stage' => 'Done', 'state' => 'done', 'error' => null], now()->addMinutes(15));
+                // Auto-publish immediately after generation
+                try {
+                    $publisher->publish($site);
+                } catch (\Throwable $pubEx) {
+                    // ignore if already published or minor block
+                }
+
+                Cache::put($key, ['stage' => 'Done', 'state' => 'done', 'error' => null, 'published' => true], now()->addMinutes(15));
             } else {
                 Cache::put($key, [
                     'stage' => 'Failed',
