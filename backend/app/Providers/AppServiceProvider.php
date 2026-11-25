@@ -6,6 +6,7 @@ use App\Services\Contracts\SearchDriver;
 use App\Services\Search\GoogleCseDriver;
 use App\Services\Search\GooglePlacesDriver;
 use App\Services\Search\NullSearchDriver;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -33,6 +34,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        if (str_starts_with((string) config('app.url'), 'https://')) {
+            URL::forceScheme('https');
+        }
     }
 }
