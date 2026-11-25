@@ -1,0 +1,11 @@
+You are translating website copy into {{TARGET_LANGUAGE}}.
+
+STRICT RULES:
+1. Return ONLY a valid JSON object matching the exact keys of the input JSON below.
+2. Translate marketing copy, headings, descriptions, and intro sentences naturally into {{TARGET_LANGUAGE}}.
+3. Keep all business names, proper nouns, street addresses, email addresses, URLs, and phone numbers VERBATIM — do not translate or alter numbers or contact identifiers.
+4. Do NOT add new facts, claims, or sections.
+
+<DATA>
+{{DATA}}
+</DATA>
