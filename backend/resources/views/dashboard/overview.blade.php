@@ -32,9 +32,9 @@
         </div>
     </div>
 
-    @if (session('status'))
+    @if (session('status') || request()->boolean('generated'))
         <div class="mb-6 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-800">
-            {{ session('status') }}
+            {{ session('status') ?: 'Website generated with AI! Review your sections or preview your live site below.' }}
         </div>
     @endif
 
@@ -81,7 +81,9 @@
                             if (this.state === 'running') {
                                 setTimeout(() => this.poll(), 1500);
                             } else if (this.state === 'done') {
-                                window.location.reload();
+                                const url = new URL(window.location.href);
+                                url.searchParams.set('generated', '1');
+                                window.location.href = url.toString();
                             }
                         });
                 }
@@ -107,12 +109,18 @@
             @endif
 
             <template x-if="state === 'running'">
-                <div class="mt-3 rounded-lg bg-indigo-50 border border-indigo-200 px-3 py-2 text-xs font-medium text-indigo-800" x-text="stage || 'Working…'"></div>
+                <div class="mt-3 flex items-center gap-2 rounded-lg bg-indigo-50 border border-indigo-200 px-3 py-2 text-xs font-medium text-indigo-800">
+                    <svg class="h-4 w-4 animate-spin shrink-0 text-indigo-600" viewBox="0 0 24 24" fill="none">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                    </svg>
+                    <span x-text="stage || 'Generating website with AI…'"></span>
+                </div>
             </template>
 
-            <template x-if="state === 'failed' && error">
+            <template x-if="state === 'failed'">
                 <div class="mt-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2.5 space-y-2">
-                    <p class="text-xs text-amber-900" x-text="error"></p>
+                    <p class="text-xs font-medium text-amber-900" x-text="error || 'AI generation failed. You can retry or build a basic site without AI.'"></p>
                     <div class="flex flex-wrap gap-2">
                         <form method="POST" action="{{ route('sites.generate', $site) }}">
                             @csrf
