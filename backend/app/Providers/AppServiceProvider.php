@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Services\Contracts\SearchDriver;
+use App\Services\Search\FreeWebSearchDriver;
 use App\Services\Search\GoogleCseDriver;
 use App\Services\Search\GooglePlacesDriver;
 use App\Services\Search\NullSearchDriver;
@@ -24,6 +25,10 @@ class AppServiceProvider extends ServiceProvider
             return match ($driver) {
                 'google_cse' => new GoogleCseDriver($apiKey, $engineId),
                 'places' => new GooglePlacesDriver($apiKey),
+                'free' => new FreeWebSearchDriver(),
+                'auto' => $apiKey !== '' && $engineId !== ''
+                    ? new GoogleCseDriver($apiKey, $engineId)
+                    : ($apiKey !== '' ? new GooglePlacesDriver($apiKey) : new FreeWebSearchDriver()),
                 default => new NullSearchDriver(),
             };
         });
