@@ -138,7 +138,7 @@ export default function App() {
                 required
                 value={businessName}
                 onChange={(e) => setBusinessName(e.target.value)}
-                placeholder="e.g. Oceanic Engineers & Consultants"
+                placeholder="e.g. GreenLeaf Roasters"
                 className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-900 focus:outline-none transition"
               />
             </div>

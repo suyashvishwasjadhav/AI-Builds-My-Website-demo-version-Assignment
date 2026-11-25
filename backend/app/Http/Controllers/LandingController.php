@@ -8,19 +8,20 @@ use App\Models\Fact;
 use App\Models\Section;
 use App\Models\Site;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class LandingController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
-        $bridge = $this->buildBridgePayload($request);
+        if (! $request->user()) {
+            return view('auth.login');
+        }
 
-        return view('landing', [
-            'bridge' => $bridge,
-        ]);
+        return redirect()->route('sites.create');
     }
 
     public function data(Request $request): JsonResponse
