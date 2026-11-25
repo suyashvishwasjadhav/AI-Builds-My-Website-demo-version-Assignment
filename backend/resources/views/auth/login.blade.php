@@ -1,4 +1,13 @@
 <x-guest-layout>
+    <!-- Highlighted Demo Login Prompt -->
+    <div class="mb-4 flex items-center gap-2.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3.5 py-2.5 text-xs font-medium text-indigo-900">
+        <span class="relative flex h-2.5 w-2.5 shrink-0">
+            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-75"></span>
+            <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-indigo-600"></span>
+        </span>
+        <span>Demo credentials are pre-filled. Press <strong>Log in</strong> below to create your website.</span>
+    </div>
+
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
@@ -33,15 +42,9 @@
             </label>
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
-                </a>
-            @endif
-
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
+        <div class="mt-5">
+            <x-primary-button class="w-full justify-center py-2.5 bg-indigo-600 hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-800 ring-2 ring-indigo-300 ring-offset-2">
+                {{ __('Log in to Create Website →') }}
             </x-primary-button>
         </div>
     </form>
